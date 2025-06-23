@@ -13,4 +13,4 @@ $$
 
 The primary and secondary beams can be setup to produce CH and C$_4$H$_6$, and then the detector's mass-to-charge ratio of 66 can be scanned for any product formation. Any measurement in the device is result of a long chain of events, namely: (1) a collision reacts and then dissociate to products, (2) the product flies in the direction of the detector, and (3) finally, the product successfully ionizes without fragmenting. When the detector in the experiment is callibrated to pick up on different speeds for the same detected mass, time-of-flight distributions can be gathered which give an insight into how much translational energy products have after dissociating. An example for the reaction above is shown here:
 
-<img align="right" width="1000" height="300" src="p518_better.pan.LAB.png">
+<img align="right" width="1000" height="400" src="p518_better.pan.LAB.png">
