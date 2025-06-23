@@ -23,9 +23,9 @@ When the detector in the experiment is callibrated to pick up on different speed
 
 <p align="justify">
 where the black circles are the experimental raw data. To get a "simulated" fit, like the red line shown above, a long series of physical transformations have to be done to obtain the proper number and distribution of product velocities in what is called a "forward convolution". GMTHRASHpy does this convolution, using a candidate center-of-mass function to describe the reaction, and transforming that forward to get these set of lab intensities.
-</p>
 
 Details on the reaction above can be found here: https://doi.org/10.1039/D1CP04443E. Without further analysis, it can be difficult to distinguish what mechanisms are responsible for the the signals seen. In this example, the scan was done at a m/z of 65, assuming that electron impact ionization fragments the C<sub>6</sub>H<sub>6</sub> product by one hydrogen. An example mechanism is shown below from molecular dynamics:
+</p>
 
 <img align="center" width="600" height="240" src="mechanism1.png">
 
