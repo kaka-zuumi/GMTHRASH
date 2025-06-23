@@ -19,7 +19,7 @@ The primary and secondary beams can be setup to produce CH and C<sub>4</sub>H<su
 When the detector in the experiment is callibrated to pick up on different speeds for the same detected mass, time-of-flight distributions can be gathered which give an insight into how much translational energy products have after dissociating. An example for the reaction above is shown here:
 </p>
 
-<img align="center" width="600" height="200" src="p518_better.pan.LAB.png">
+<img align="center" width="800" height="320" src="p518_better.pan.LAB.png">
 
 <p align="justify">
 where the black circles are the experimental raw data. To get a "simulated" fit, like the red line shown above, a long series of physical transformations have to be done to obtain the proper number and distribution of product velocities in what is called a "forward convolution". GMTHRASHpy does this convolution, using a candidate center-of-mass function to describe the reaction, and transforming that forward to get these set of lab intensities.
@@ -27,7 +27,7 @@ where the black circles are the experimental raw data. To get a "simulated" fit,
 
 Details on the reaction above can be found here: https://doi.org/10.1039/D1CP04443E. Without further analysis, it can be difficult to distinguish what mechanisms are responsible for the the signals seen. In this example, the scan was done at a m/z of 65, assuming that electron impact ionization fragments the C<sub>6</sub>H<sub>6</sub> product by one hydrogen. An example mechanism is shown below from molecular dynamics:
 
-<img align="center" width="800" height="320" src="mechanism1.png">
+<img align="center" width="600" height="240" src="mechanism1.png">
 
 
 ## Usage
