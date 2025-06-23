@@ -18,3 +18,4 @@ setup(
             'GMTHRASH.py',
             'GMTHRASH_cli.py',
            ]
+)
