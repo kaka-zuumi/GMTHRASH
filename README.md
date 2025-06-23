@@ -38,6 +38,13 @@ There are two usages for two different kinds of users:
 
 Run the `GMTHRASH.py` python application with your favourite Python environment. You may need something with conda distributions. A window should pop up:
 
+<img align="center" width="1000" height="400" src="window1.png">
+
+<p align="justify">
+Click on "Import PAN file" to select your input file. It will populate the text box where you may edit the input. Then click on either "Forward Convolution" buttons to product the lab distributions as shown above. If you click "Full Forward Convolution", the images and data files will by default be saved in the background; they will be named the same as the input but with extra file suffixes attached.
+</p>
+
+
 # For terminal/coding use:
 
 From a terminal, using the command line interface (CLI) is usually easier. First, create a PAN input file that describes your experimental setup and data, like so:
