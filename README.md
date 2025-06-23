@@ -32,6 +32,14 @@ Details on the reaction above can be found here: https://doi.org/10.1039/D1CP044
 
 ## Usage
 
+There are two usages for two different kinds of users:
+
+# For general use:
+
+Run the `GMTHRASH.py` python application with your favourite Python environment. You may need something with conda distributions. A window should pop up:
+
+# For terminal/coding use:
+
 From a terminal, using the command line interface (CLI) is usually easier. First, create a PAN input file that describes your experimental setup and data, like so:
 
 <details>
