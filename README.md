@@ -1,5 +1,5 @@
 
-## Introduction
+# Introduction
 
 <img align="right" width="300" height="300" src="device1.png">
 
@@ -30,11 +30,11 @@ Details on the reaction above can be found here: https://doi.org/10.1039/D1CP044
 <img align="center" width="600" height="240" src="mechanism1.png">
 
 
-## Usage
+# Usage
 
 There are two usages for two different kinds of users:
 
-# For general use:
+## For general use:
 
 Run the `GMTHRASH.py` python application with your favourite Python environment. You may need something with conda distributions. A window should pop up:
 
@@ -45,7 +45,7 @@ Click on "Import PAN file" to select your input file. It will populate the text 
 </p>
 
 
-# For terminal/coding use:
+## For terminal/coding use:
 
 From a terminal, using the command line interface (CLI) is usually easier. First, create a PAN input file that describes your experimental setup and data, like so:
 
