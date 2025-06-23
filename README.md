@@ -25,6 +25,8 @@ When the detector in the experiment is callibrated to pick up on different speed
 where the black circles are the experimental raw data. To get a "simulated" fit, like the red line shown above, a long series of physical transformations have to be done to obtain the proper number and distribution of product velocities in what is called a "forward convolution". GMTHRASHpy does this convolution, using a candidate center-of-mass function to describe the reaction, and transforming that forward to get these set of lab intensities.
 </p>
 
+Details on the reaction above can be found here: https://doi.org/10.1039/D1CP04443E.
+
 ## Usage
 
 From a terminal, using the command line interface (CLI) is usually easier. First, create a PAN input file that describes your experimental setup and data, like so:
