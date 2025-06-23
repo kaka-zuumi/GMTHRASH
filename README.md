@@ -22,6 +22,49 @@ When the detector in the experiment is callibrated to pick up on different speed
 <img align="center" width="800" height="320" src="p518_better.pan.LAB.png">
 
 <p align="justify">
-where the black circles are the experimental raw data. To get a "simulated" fit, like the red line shown above, a complicated series of physical transformations have to be done to obtain the proper number and distribution of product velocities in what is called a "forward convolution". GMTHRASHpy does this convolution, using a candidate center-of-mass function to describe the reaction, and transforming that forward to get these set of lab intensities.
+where the black circles are the experimental raw data. To get a "simulated" fit, like the red line shown above, a long series of physical transformations have to be done to obtain the proper number and distribution of product velocities in what is called a "forward convolution". GMTHRASHpy does this convolution, using a candidate center-of-mass function to describe the reaction, and transforming that forward to get these set of lab intensities.
 </p>
+
+## Usage
+
+From a terminal, using the command line interface (CLI) is usually easier. First, create a PAN input file that describes your experimental setup and data, like so:
+
+<details>
+  
+<summary>Header portion of CH+C4H6.pan</summary>
+
+```text
+ch + c4h6 -> 
+00001010110211
+13 9 5 5
+90.  1.6   0.8
+0
+
+18.4 12.0
+8 9.5
+
+13 54
+1
+
+65
+3 0
+
+1
+0
+-0.3
+
+0.65 5.0 15 0
+
+
+12  2500
+0.1 0.1
+```
+</details>
+
+and then give it to `GMTHRASH_cli.py` as an argument, like so:
+```
+python GMTHRASH_cli.py CH+C4H6.pan
+```
+
+this produces the figure in the Introduction as well as the candidate center-of-mass (CM) functions.
 
