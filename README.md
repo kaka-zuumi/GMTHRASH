@@ -4,7 +4,7 @@
 <img align="right" width="300" height="300" src="device1.png">
 
 <p align="justify">
-Crossed molecular beams experiments are designed to provide single-collision conditions for molecular reactions while also gathering dynamical information from it. GMTHRASHpy is designed to process this dynamical information to get center-of-mass information on the reactions. An crossed molecular beams setup from Perugia is shown in the figure to the right, from https://doi.org/10.1080/01442350600641305.
+Crossed molecular beams experiments are designed to provide single-collision conditions for molecular reactions with strategically placed detectors to gather dynamical information. GMTHRASHpy is designed to process this dynamical information to get center-of-mass information on the reactions. An crossed molecular beams setup from Perugia is shown in the figure to the right, from https://doi.org/10.1080/01442350600641305.
 </p>
 
 These kind of setups can be used to study a vast number of elementary gas-phase bimoelcular reactions. For example, consider the reaction below:
@@ -87,4 +87,27 @@ python GMTHRASH_cli.py CH+C4H6.pan
 ```
 
 this produces the figure in the Introduction as well as the candidate center-of-mass (CM) functions.
+
+<p align="justify">
+GMTHRASH may also be imported as a module into another script's main program. The class resposible for all of the variables and functions is `crossedmolecularbeamsexperiment` and requires a few setup steps before calling for the forward convolution in `scanlabangles`. An example is shown below:
+</p>
+
+```
+from GMTHRASH import crossedmolecularbeamsexperiment
+experiment = crossedmolecularbeamsexperiment()   # Step 0
+
+experiment.readPAN("CH+C4H6.pan")                # Step 1.1
+experiment.setup_nonPANvariables()               # Step 1.2
+
+# Manipulate PAN variables here...
+
+experiment.setup_postPANvariables()              # Step 2
+
+simANG, totalsimANG, simTOF, totalsimTOF = experiment.scanlabangles()    # Step 3
+
+# Plot!
+experiment.plotLABfits(simANG,simTOF,"CH+C4H6.LAB.png")
+experiment.plotCMfits("CH+C4H6.CM.png")
+```
+
 
