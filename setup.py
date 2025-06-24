@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 #with open("README.md", 'r') as f:
 #    long_description = f.read()
@@ -12,7 +12,7 @@ setup(
    author='Kazuumi Fujioka',
    author_email='kazuumi@hawaii.edu',
    url="https://github.com/kaka-zuumi/GMTHRASH",
-#   packages=['gmthrash'],  #same as name
+   packages=find_packages(include=['GMTHRASH_cli'],exclude=['GMTHRASH']),  #same as name
    install_requires=['pandas', 'numpy', 'scipy', 'matplotlib', 'sys', 're', 'customtkinter', 'tkinter'], #external packages as dependencies
    scripts=[
             'GMTHRASH.py',
