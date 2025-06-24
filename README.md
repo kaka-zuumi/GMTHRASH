@@ -83,7 +83,7 @@ ch + c4h6 ->
 
 and then give it to `GMTHRASH_cli.py` as an argument, like so:
 ```
-python GMTHRASH_cli.py CH+C4H6.pan
+GMTHRASH_cli.py CH+C4H6.pan
 ```
 
 this produces the figure in the Introduction as well as the candidate center-of-mass (CM) functions.
@@ -93,7 +93,7 @@ GMTHRASH may also be imported as a module into another script's main program. Th
 </p>
 
 ```
-from GMTHRASH import crossedmolecularbeamsexperiment
+from gmthrash import crossedmolecularbeamsexperiment
 experiment = crossedmolecularbeamsexperiment()   # Step 0
 
 experiment.readPAN("CH+C4H6.pan")                # Step 1.1
