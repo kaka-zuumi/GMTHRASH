@@ -12,7 +12,8 @@ setup(
    author='Kazuumi Fujioka',
    author_email='kazuumi@hawaii.edu',
    url="https://github.com/kaka-zuumi/GMTHRASH",
-   packages=find_packages(include=['GMTHRASH_cli'],exclude=['GMTHRASH']),  #same as name
+   packages=['gmthrash'],  #same as name
+#   packages=find_packages(include=['GMTHRASH_cli'],exclude=['GMTHRASH']),  #same as name
    install_requires=['pandas', 'numpy', 'scipy', 'matplotlib', 'customtkinter'], #external packages as dependencies
    scripts=[
             'GMTHRASH.py',
