@@ -13,7 +13,7 @@ setup(
    author_email='kazuumi@hawaii.edu',
    url="https://github.com/kaka-zuumi/GMTHRASH",
    packages=find_packages(include=['GMTHRASH_cli'],exclude=['GMTHRASH']),  #same as name
-   install_requires=['pandas', 'numpy', 'scipy', 'matplotlib', 'sys', 're', 'customtkinter', 'tkinter'], #external packages as dependencies
+   install_requires=['pandas', 'numpy', 'scipy', 'matplotlib', 'customtkinter', 'tkinter'], #external packages as dependencies
    scripts=[
             'GMTHRASH.py',
             'GMTHRASH_cli.py',
