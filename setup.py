@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
    name='gmthrash',
-   version='1.0',
+   version='1.1',
    description='Forward Convolution Calculations for Crossed Molecular Beams Experiments',
    license="MIT",
 #   long_description=long_description,
