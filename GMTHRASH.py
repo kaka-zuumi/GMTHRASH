@@ -836,7 +836,7 @@ class crossedmolecularbeamsexperiment:
     if (self.Nproductchannels > 1):
       for Nproductchannel in range(self.Nproductchannels):
         axes1[Nproductchannel].set_xlim(left=0.0,right=180.0)
-        axes1[Nproductchannel].set_ylim(bottom=0,top=np.max(ys[-1])*1.1)
+        axes1[Nproductchannel].set_ylim(bottom=0,top=np.max(ys[Nproductchannel])*1.1)
         axes1[Nproductchannel].plot(x, ys[Nproductchannel], linestyle='-', color='red')
 
     # Second the translational energy:
@@ -874,7 +874,7 @@ class crossedmolecularbeamsexperiment:
     if (self.Nproductchannels > 1):
       for Nproductchannel in range(self.Nproductchannels):
         axes2[Nproductchannel].set_xlim(left=0.0,right=(PET_Emax_max)*1.1)
-        axes2[Nproductchannel].set_ylim(bottom=0,top=np.max(ys[-1])*1.1)
+        axes2[Nproductchannel].set_ylim(bottom=0,top=np.max(ys[Nproductchannel])*1.1)
         axes2[Nproductchannel].plot(x, ys[Nproductchannel], linestyle='-', color='red')
 
     fig.savefig(imagename)
