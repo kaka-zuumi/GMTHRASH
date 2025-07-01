@@ -225,6 +225,9 @@ class crossedmolecularbeamsexperiment:
     # The number of points to convolve over in the ionizer
     self.Nionizer = 5
     
+    # The interval for scanning v1s
+    self.dv1s_scan = 0.001
+    
     # Sus settings:
     
     # Don't scan over the detector diameter:
@@ -378,12 +381,9 @@ class crossedmolecularbeamsexperiment:
     # normalized (important when there are multiple channels)
     PETtotal_constant = 1.0e0 / (float(gamma(PET_m+1) * gamma(PET_n+1) / gamma(PET_m+PET_n+2)))
     Pthetatotal_constant = 1.0e0 / ((Ptheta[0]+0.25e0*Ptheta[2])*np.pi)
-  
-    # In Weiss, the P(ET) -> P(u) transformation brings with it muP... just stick it in here
-    PETtotal_constant = muP * PETtotal_constant
-  
-    # In Weiss, the P(ET) -> P(u) transformation over v^2 brings with it (m/mP)^2... just stick it in here (?)
-    PETtotal_constant = PETtotal_constant * ((m/mP)**2)
+    
+    # In Weiss, the P(ET) -> P(u) transformation brings with it mass converter, as well as m/mP... just stick it in here
+    PETtotal_constant = PETtotal_constant * ((m)/(mP)) / (massconverter)
   
     # Two things will be returned: the relative energies and the TOFintensities
     # All other important variables can be derived from these
@@ -483,13 +483,16 @@ class crossedmolecularbeamsexperiment:
                   TOFs.append(TOF)
                   Erels.append(Erel)
                   continue
-    
-    
 
-              
-                # Iterate over product translational energies (they are all stored in v1sq)
-                dv1s = 2*muP*massconverter*0.010   #0.01
-                v1sq = np.arange(max(vperp,massconverter*PET_Emin) + dv1s/2, massconverter*(PET_Emax+Erel), dv1s)
+                
+                # Calculate the bounds of the integral over v1sq
+                v1smin = np.sqrt(max(vperp,massconverter*PET_Emin))
+                v1smax = np.sqrt(massconverter*(PET_Emax + Erel))
+                dv1s_prod = np.abs((v1smax - v1smin) * self.dv1s_scan)
+                Pnewton = Pnewton * dv1s_prod
+     
+                # Create a vector of v1sq
+                v1sq = np.arange(v1smin + (dv1s_prod)/2, v1smax, dv1s_prod)**2
   
                 # Calculate the energy and get its probability
                 Eprodtrans = v1sq*invmassconverter # (m*mP/(2*(m-mP)))
@@ -533,8 +536,8 @@ class crossedmolecularbeamsexperiment:
                 vLABsq = vLABx**2 + vLABy**2 + vLABz**2
                 vLABmag = np.sqrt(vLABsq)
                 uDOTvLAB = np.abs(ux*vLABx+uy*vLABy+uz*vLABz)
-  
-                dProot = (vLABsq) / np.maximum(np.sqrt(v1sq[orig_indices])*uDOTvLAB,0.00010*v1sq[orig_indices]*vLABmag)
+
+                dProot = (vLABsq) / uDOTvLAB
                 Proot *= dProot
   
   #             Get the lab TOF (this is converted to usec)
