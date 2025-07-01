@@ -230,7 +230,7 @@ class crossedmolecularbeamsexperiment:
     self.Nionizer = 5
     
     # The interval for scanning v1s
-    self.dv1s_scan = 0.01
+    self.dv1s_scan = 0.001
     
     # Sus settings:
     
@@ -366,7 +366,7 @@ class crossedmolecularbeamsexperiment:
     PET_Emax = productchannelinfo["PET_Emax"]
     PET_Emin = productchannelinfo["PET_Emin"]
 
-    # Unpack all the information of this detctor angle
+    # Unpack all the information of this detector angle
     cthetaD, sthetaD, xD0, dxDx, dxDy, dxDz, wDx, wDy, wDz = detectorinfo
   
     m = mA + mB
@@ -385,11 +385,8 @@ class crossedmolecularbeamsexperiment:
     PETtotal_constant = 1.0e0 / (float(gamma(PET_m+1) * gamma(PET_n+1) / gamma(PET_m+PET_n+2)))
     Pthetatotal_constant = 1.0e0 / ((Ptheta[0]+0.25e0*Ptheta[2])*np.pi)
   
-    # In Weiss, the P(ET) -> P(u) transformation brings with it muP... just stick it in here
-    PETtotal_constant = muP * PETtotal_constant
-  
-    # In Weiss, the P(ET) -> P(u) transformation over v^2 brings with it (m/mP)^2... just stick it in here (?)
-    PETtotal_constant = PETtotal_constant * ((m/mP)**2)
+    # In Weiss, the P(ET) -> P(u) transformation brings with it mass converter, as well as m/mP... just stick it in here
+    PETtotal_constant = PETtotal_constant * ((m)/(mP)) / (massconverter)
   
     # Two things will be returned: the relative energies and the TOFintensities
     # All other important variables can be derived from these
@@ -489,11 +486,15 @@ class crossedmolecularbeamsexperiment:
                   TOFs.append(TOF)
                   Erels.append(Erel)
                   continue
-    
-    
+
+                # Calculate the bounds of the integral over v1sq
+                v1smin = np.sqrt(max(vperp,massconverter*PET_Emin))
+                v1smax = np.sqrt(massconverter*(PET_Emax + Erel))
+                dv1s_prod = np.abs((v1smax - v1smin) * self.dv1s_scan)
+                Pnewton = Pnewton * dv1s_prod
      
                 # Create a vector of v1sq
-                v1sq = np.arange(max(vperp,massconverter*PET_Emin) + dv1s/2, massconverter*(PET_Emax+Erel), dv1s)
+                v1sq = np.arange(v1smin + (dv1s_prod)/2, v1smax, dv1s_prod)**2
   
                 # Calculate the energy and get its probability
                 Eprodtrans = v1sq*invmassconverter # (m*mP/(2*(m-mP)))
@@ -539,7 +540,7 @@ class crossedmolecularbeamsexperiment:
                 vLABmag = np.sqrt(vLABsq)
                 uDOTvLAB = np.abs(ux*vLABx+uy*vLABy+uz*vLABz)
   
-                dProot = (vLABsq) / np.maximum(np.sqrt(v1sq[orig_indices])*uDOTvLAB,0.00010*v1sq[orig_indices]*vLABmag)
+                dProot = (vLABsq) / uDOTvLAB
                 Proot *= dProot
   
   #             Get the lab TOF (this is converted to usec)
@@ -978,7 +979,7 @@ def lazyFit():
 
   experiment.NvA, NvA = 3, experiment.NvA
   experiment.NvB, NvB = 2, experiment.NvB
-  experiment.dv1s_scan, dv1s_scan = 0.1, experiment.dv1s_scan
+  experiment.dv1s_scan, dv1s_scan = 0.001, experiment.dv1s_scan
   experiment.ionizerlength, ionizerlength = experiment.ionizerlength*10, experiment.ionizerlength
   
   experiment.setup_postPANvariables()
