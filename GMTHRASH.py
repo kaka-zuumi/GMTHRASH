@@ -1177,7 +1177,7 @@ if __name__ == "__main__":
                                    height=50)
   button.grid(row=4, column=0, padx=10, pady=(10, 10), sticky="sew")
   
-  button = customtkinter.CTkButton(master=root, text="Full Forward Convolution ((5-20 seconds)", fg_color="#4CAF50", 
+  button = customtkinter.CTkButton(master=root, text="Full Forward Convolution (5-20 seconds)", fg_color="#4CAF50", 
                                    hover_color="#388E3C", command=(fullFit),
                                    height=50)
   button.grid(row=4, column=1, padx=10, pady=(10, 10), sticky="sew")
