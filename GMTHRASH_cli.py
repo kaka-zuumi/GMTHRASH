@@ -374,7 +374,30 @@ class crossedmolecularbeamsexperiment:
 
     # Prepare the convolution over the ionizer length
     self.ionizer_convolution = (self.L + np.linspace(0,self.ionizerlength,self.Nionizer))
+    
+    self.TOFvelocitybounds = []
+    for i in range(self.Nionizer):
+      velocitybounds = self.invdTOF*10*self.ionizer_convolution[i]/(np.arange(self.Ndata+1)+self.channelstart)  # Add one more bin at the end to allow identification of overshooting
+      velocitybounds_max = np.max(velocitybounds) *1.1
+      velocitybounds[velocitybounds<0] = velocitybounds_max
+      self.TOFvelocitybounds.append(-velocitybounds)              # Note: we want an ASCENDING order for bounds, so just make these negative velocities
+      
 
+######################################################################################################
+
+  # Get the conversion between lab velocities and channels pre-hashed here
+  def velocityTOchannel(self,vs):
+    allchannels = []
+    vs_neg = -vs
+    for i in range(self.Nionizer):
+      channels = np.searchsorted(self.TOFvelocitybounds[i],vs_neg,side='left') - 1  # Note: underflows are in bin index "-1" and overflows are in bin "self.Ndata"
+      allchannels.append(channels)  
+	
+#   numpy searchsorted:
+#     "left"  a[i-1] < v <= a[i]
+#     "right" a[i-1] <= v < a[i]
+
+    return allchannels
 
 ######################################################################################################
 
@@ -567,14 +590,12 @@ class crossedmolecularbeamsexperiment:
   
                 dProot = (vLABsq) / uDOTvLAB
                 Proot *= dProot
-  
-  #             Get the lab TOF (this is converted to usec)
-                dchannel = (self.invdTOF * 10) / (vLABmag)
-  
-                # There is some broadening over the ionizer length:
-                for channelscaling in self.ionizer_convolution:
-                  TOFchannels = np.int32(dchannel*channelscaling - self.channelstart)      # Note: make sure channelstart is negative
-  
+                
+                if (len(vLABmag)==0): next
+                
+                allTOFchannels = self.velocityTOchannel(vLABmag)
+                for TOFchannels in allTOFchannels:
+                
                   # Add the probability to the TOF
                   for aProot, TOFchannel in zip(Proot,TOFchannels):
                     if (TOFchannel < self.Ndata):
@@ -584,6 +605,7 @@ class crossedmolecularbeamsexperiment:
                         continue
   
                       TOF[TOFchannel] += aProot 
+                      
   
                 # Scale by the probability of that Newton circle
                 TOFs.append(TOF * Pnewton)
