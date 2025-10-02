@@ -7,7 +7,7 @@
 Crossed molecular beams experiments are designed to provide single-collision conditions for molecular reactions with strategically placed detectors to gather dynamical information. GMTHRASHpy is designed to process this dynamical information to get center-of-mass information on the reactions. An crossed molecular beams setup from Perugia is shown in the figure to the right, from https://doi.org/10.1080/01442350600641305.
 </p>
 
-These kind of setups can be used to study a vast number of elementary gas-phase bimoelcular reactions. For example, consider the reaction below:
+These kind of setups can be used to study a vast number of elementary gas-phase bimolecular reactions. For example, consider the reaction below:
 
 $$
 \textrm{CH} + \textrm{C}_4 \textrm{H}_6 \longrightarrow \textrm{C}_5 \textrm{H}_6 + \textrm{H}
