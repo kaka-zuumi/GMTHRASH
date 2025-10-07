@@ -5,6 +5,7 @@ import numpy as np
 from scipy.special import gamma
 from scipy.optimize import fsolve
 from scipy.integrate import simpson
+from scipy.integrate import quad
 from scipy import signal
 import matplotlib.pyplot as plt
 import sys
@@ -29,6 +30,8 @@ are_you_impatient = True
 class crossedmolecularbeamsexperiment:
 
   def __init__(self):
+
+    self.degTOrad  = np.pi / 180.0
 
     pass
 
@@ -56,6 +59,7 @@ class crossedmolecularbeamsexperiment:
     field = total_fields
     
     overallkey = field[0]
+    self.PscatteringenergyPointForm = int(overallkey[2])
     self.Nproductchannels = int(overallkey[-2])
     if (self.Nproductchannels < 1):
       raise ValueError("The key on line 2 ("+overallkey+") has an incorrect number of product channels (2nd to last number) ... should be > 0")
@@ -91,27 +95,92 @@ class crossedmolecularbeamsexperiment:
       branching_ratio = float(field[Nfield])
       Nfield += 1
       mP = float(field[Nfield])
-    
+
       Nfield += 1
-      NlegendrePtheta = int(field[Nfield])      # Does not affect program
+      NPtheta = int(field[Nfield])
       Nfield += 1
-      PthetaRRKform =   int(field[Nfield])      # Does not affect program
+      PscatteringanglePointForm = int(field[Nfield])
       Nfield += 1
-      Ptheta = [float(field[Nfield]), float(field[Nfield+1]), float(field[Nfield+2])]
-    
-      Nfield += 3
-      PET_n    = float(field[Nfield])          # (goes with Emin)
-      Nfield += 1
-      PET_m    = float(field[Nfield])          # (goes with Emax)
-      Nfield += 1
-      PET_Emax = float(field[Nfield])*4.184    # In kcal/mol
-      Nfield += 1
-      PET_Emin = float(field[Nfield])*4.184    # In kcal/mol
-    
-      productchannelinfo = {"mA":mA, "mB":mB, "branching_ratio":branching_ratio, "mP":mP, "NlegendrePtheta":NlegendrePtheta, "PthetaRRKform":PthetaRRKform, "Ptheta":Ptheta, "PET_n":PET_n, "PET_m":PET_m, "PET_Emax":PET_Emax, "PET_Emin":PET_Emin}
+
+      productchannelinfo = {"mA":mA, "mB":mB, "branching_ratio":branching_ratio, "mP":mP, "NPtheta":NPtheta, "PscatteringanglePointForm":PscatteringanglePointForm}
+
+      if (PscatteringanglePointForm):
+        PscatteringanglePointForm_x = []
+        for i in range(NPtheta):
+          PscatteringanglePointForm_x.append(np.cos(self.degTOrad*float(field[Nfield])))
+          Nfield += 1
+        PscatteringanglePointForm_y = []
+        for i in range(NPtheta):
+          PscatteringanglePointForm_y.append(float(field[Nfield]))
+          Nfield += 1
+
+        # Reverse the order of the list to make it be in increasing order cos(theta)
+        PscatteringanglePointForm_x.reverse()
+        PscatteringanglePointForm_y.reverse()
+
+        PthetaParameters = [PscatteringanglePointForm_x, PscatteringanglePointForm_y]
+        def Ptheta(cthetaprod,PthetaParameters):
+          return np.interp(cthetaprod,PthetaParameters[0],PthetaParameters[1])
+
+      else:
+        PthetaParameters = []
+        for i in range(NPtheta):
+          PthetaParameters.append(float(field[Nfield]))
+          Nfield += 1
+
+        def Ptheta(cthetaprod,PthetaParameters):
+          cdoublethetaprod = 1.5e0*(cthetaprod**2) - 0.5e0
+          return PthetaParameters[0] + PthetaParameters[1] * cthetaprod + PthetaParameters[2] * cdoublethetaprod
+
+      productchannelinfo["Ptheta"] = Ptheta
+      productchannelinfo["PthetaParameters"] = PthetaParameters
+
+      if not (self.PscatteringenergyPointForm):
+
+        PET_n    = float(field[Nfield])          # (goes with Emin)
+        Nfield += 1
+        PET_m    = float(field[Nfield])          # (goes with Emax)
+        Nfield += 1
+        PET_Emax = float(field[Nfield])*4.184    # In kcal/mol
+        Nfield += 1
+        PET_Emin = float(field[Nfield])*4.184    # In kcal/mol
+        Nfield += 1
+
+        PETParameters = (PET_n,PET_m,PET_Emax,PET_Emin)
+        def PET(ET,Erel,PETParameters):
+          return ((ET - PETParameters[3])**PETParameters[0]) * ((PETParameters[2]+Erel - ET)**PETParameters[1])
+
+      else:
+
+        x        = int(field[Nfield])            # The number of Erel to simulate for (for now, just ignore and assume it is 1)
+        Nfield += 1
+        dET      = float(field[Nfield])*4.184    # Spacing between translational energies ... in kcal/mol
+        Nfield += 1
+        ETstart  = float(field[Nfield])          #
+        Nfield += 1
+        ETstart  = float(field[Nfield])*4.184    # Redundant variable with above? ... in kcal/mol
+        Nfield += 1
+        Erel     = float(field[Nfield])*4.184    # The Erel for this P(ET) ... in kcal/mol
+        Nfield += 1
+
+        NPET    = int(field[Nfield])
+        Nfield += 1
+        PET_x = []
+        PET_y = []
+        for i in range(NPET):
+          PET_x.append(ETstart + i*dET)
+          PET_y.append(float(field[Nfield]))
+          Nfield += 1
+
+        PETParameters = (PET_x, PET_y)
+        def PET(ET,Erel,PETParameters):
+          return np.interp(ET,PETParameters[0],PETParameters[1])
+
+      productchannelinfo["PET"] = PET
+      productchannelinfo["PETParameters"] = PETParameters
+
       self.productchannelinfos.append(productchannelinfo)
-    
-    Nfield += 1
+
     self.Nlabtheta = int(field[Nfield])
     Nfield += 1
     self.Nvscan = int(field[Nfield])
@@ -243,7 +312,6 @@ class crossedmolecularbeamsexperiment:
   def setup_postPANvariables(self):
 
     # Get conversions, constants, and units ready
-    self.degTOrad  = np.pi / 180.0
     self.pisquared = np.pi * np.pi
     self.picubed   = self.pisquared * np.pi
     
@@ -376,20 +444,23 @@ class crossedmolecularbeamsexperiment:
   # Do a forward convolution for a single product channel and detector angle
 
   def forwardConvolute(self,productchannelinfo,detectorinfo):
-  
+
     # Unpack all the information of this product channel
     mA = productchannelinfo["mA"]
     mB = productchannelinfo["mB"]
     mP = productchannelinfo["mP"]
-    NlegendrePtheta = productchannelinfo["NlegendrePtheta"]
-    PthetaRRKform = productchannelinfo["PthetaRRKform"]
+    NPtheta = productchannelinfo["NPtheta"]
+    PscatteringanglePointForm = productchannelinfo["PscatteringanglePointForm"]
     Ptheta = productchannelinfo["Ptheta"]
-    PET_n = productchannelinfo["PET_n"]
-    PET_m = productchannelinfo["PET_m"]
-    PET_Emax = productchannelinfo["PET_Emax"]
-    PET_Emin = productchannelinfo["PET_Emin"]
+    PthetaParameters = productchannelinfo["PthetaParameters"]
+    PETfunc = productchannelinfo["PET"]
+    PETParameters = productchannelinfo["PETParameters"]
+#   PET_n = productchannelinfo["PET_n"]
+#   PET_m = productchannelinfo["PET_m"]
+#   PET_Emax = productchannelinfo["PET_Emax"]
+#   PET_Emin = productchannelinfo["PET_Emin"]
 
-    # Unpack all the information of this detector angle
+    # Unpack all the information of this detctor angle
     cthetaD, sthetaD, xD0, dxDx, dxDy, dxDz, wDx, wDy, wDz = detectorinfo
   
     m = mA + mB
@@ -399,15 +470,14 @@ class crossedmolecularbeamsexperiment:
   
     massconverter = 2*((m-mP)/(m*mP))
     invmassconverter = 1.0e0 / massconverter
-    
-    # The v1s velocity scanner    
-    dv1s = 2*muP*massconverter*self.dv1s_scan    #0.01
-  
+
     # Prepare the integrals of P(ET) and P(theta) so that they are correctly
     # normalized (important when there are multiple channels)
-    PETtotal_constant = 1.0e0 / (float(gamma(PET_m+1) * gamma(PET_n+1) / gamma(PET_m+PET_n+2)))
-    Pthetatotal_constant = 1.0e0 / ((Ptheta[0]+0.25e0*Ptheta[2])*np.pi)
-  
+#   PETtotal_constant = 1.0e0 / (float(gamma(PET_m+1) * gamma(PET_n+1) / gamma(PET_m+PET_n+2)))
+#   Pthetatotal_constant = 1.0e0 / ((Ptheta[0]+0.25e0*Ptheta[2])*np.pi)
+    PETtotal_constant = 1.0e0
+    Pthetatotal_constant = 1.0e0 / quad(Ptheta,-1.0e0,1.0e0,args=(PthetaParameters))[0]
+    
     # In Weiss, the P(ET) -> P(u) transformation brings with it mass converter, as well as m/mP... just stick it in here
     PETtotal_constant = PETtotal_constant * ((m)/(mP)) / (massconverter)
   
@@ -468,9 +538,17 @@ class crossedmolecularbeamsexperiment:
             # which comes out to ((ET_max-ET_min)^(PET_m+PET_n+1)) * gamma(PET_m+1) * gamma(PET_n+1) / gamma(PET_m+PET_n+2)
             # where luckily those gamma function calls are constant, so are calculated outisde of this loop
             #           Note to self: provide proof that this integral is correct
-            invPETtotal = PETtotal_constant / ((PET_Emax+Erel-PET_Emin)**(PET_m+PET_n+1))
+#           invPETtotal = PETtotal_constant / ((PET_Emax+Erel-PET_Emin)**(PET_m+PET_n+1))
+#           invPthetatotal = Pthetatotal_constant
+            if (len(PETParameters)==4):
+              PET_Emax = PETParameters[2]
+              PET_Emin = PETParameters[3]
+            else:
+              PET_Emax = PETParameters[0][-1]
+              PET_Emin = PETParameters[0][0]
+            invPETtotal = PETtotal_constant / quad(PETfunc,PET_Emin,PET_Emax+Erel,args=(Erel,PETParameters))[0]
             invPthetatotal = Pthetatotal_constant
-  
+
             # The collision energy dependence of the reaction cross section
             PvAB = PvAB * self.Pcollisionenergies(Erel)   # Normally, it is: ((Erel)**(-0.33e0))
   
@@ -522,7 +600,8 @@ class crossedmolecularbeamsexperiment:
                 # Calculate the energy and get its probability
                 Eprodtrans = v1sq*invmassconverter # (m*mP/(2*(m-mP)))
                 Etrans = Eprodtrans
-                PET = ((Eprodtrans - PET_Emin)**PET_n) * ((PET_Emax+Erel - Eprodtrans)**PET_m)
+#               PET = ((Eprodtrans - PET_Emin)**PET_n) * ((PET_Emax+Erel - Eprodtrans)**PET_m)
+                PET = PETfunc(Eprodtrans,Erel,PETParameters)
   
   
                 # Solve for the Newton circle solutions (two roots)
@@ -547,8 +626,9 @@ class crossedmolecularbeamsexperiment:
   
                 # Get angular information and probabilities
                 cthetaprod = (ux*vrel[0]+uy*vrel[1]+uz*vrel[2]) / np.sqrt(v1sq[orig_indices] * vrelsq)
-                cdoublethetaprod = 1.5e0*(cthetaprod**2) - 0.5e0
-                Pthetaprod = Ptheta[0] + Ptheta[1] * cthetaprod + Ptheta[2] * cdoublethetaprod
+#               cdoublethetaprod = 1.5e0*(cthetaprod**2) - 0.5e0
+#               Pthetaprod = Ptheta[0] + Ptheta[1] * cthetaprod + Ptheta[2] * cdoublethetaprod
+                Pthetaprod = Ptheta(cthetaprod,PthetaParameters)
                 Pthetaprod_mask = Pthetaprod>0
                 orig_indices = orig_indices[Pthetaprod_mask]
                 Proot = PET[orig_indices]*Pthetaprod[Pthetaprod_mask]
@@ -841,17 +921,21 @@ class crossedmolecularbeamsexperiment:
     y = np.zeros(len(x))
     for Nproductchannel in range(self.Nproductchannels):
       Ptheta = self.productchannelinfos[Nproductchannel]["Ptheta"]
-      Pthetatotal_constant = 1.0e0 / ((Ptheta[0]+0.25e0*Ptheta[2])*np.pi)
+      PthetaParameters = self.productchannelinfos[Nproductchannel]["PthetaParameters"]
+      Pthetatotal_constant = 1.0e0 / quad(Ptheta,-1.0e0,1.0e0,args=(PthetaParameters))[0]
       P1 = np.cos(x*self.degTOrad)
       P2 = 1.5e0*(P1**2) - 0.5e0
-      ys.append((Ptheta[0] + Ptheta[1]*P1 + Ptheta[2]*P2) * Pthetatotal_constant)
+      ys.append(Ptheta(P1,PthetaParameters) * Pthetatotal_constant)
       y += ys[-1] * self.productchannelinfos[Nproductchannel]["branching_ratio"]
-  
+
       mu = self.productchannelinfos[Nproductchannel]["mA"] * self.productchannelinfos[Nproductchannel]["mB"] / (self.productchannelinfos[Nproductchannel]["mA"]+self.productchannelinfos[Nproductchannel]["mB"])
       Erel = 0.5e0 * mu * (self.vApp**2 + self.vBpp**2)
-      PET_Emax = self.productchannelinfos[Nproductchannel]["PET_Emax"]
+      if (len(self.productchannelinfos[Nproductchannel]["PETParameters"])==4):
+        PET_Emax = self.productchannelinfos[Nproductchannel]["PETParameters"][2]
+      else:
+        PET_Emax = self.productchannelinfos[Nproductchannel]["PETParameters"][0][-1]
       PET_Emax_max = max(PET_Emax_max,PET_Emax+Erel)
-  
+
     ax1.set_xlim(left=0.0,right=180.0)
     ax1.set_ylim(bottom=0,top=np.max(y)*1.1)
     ax1.plot(x, y, linestyle='-', color='red')
@@ -871,20 +955,23 @@ class crossedmolecularbeamsexperiment:
     ys = []
     y = np.zeros(len(x))
     for Nproductchannel in range(self.Nproductchannels):
-  
+
       mu = self.productchannelinfos[Nproductchannel]["mA"] * self.productchannelinfos[Nproductchannel]["mB"] / (self.productchannelinfos[Nproductchannel]["mA"]+self.productchannelinfos[Nproductchannel]["mB"])
       Erel = 0.5e0 * mu * (self.vApp**2 + self.vBpp**2)
-      PET_Emin = self.productchannelinfos[Nproductchannel]["PET_Emin"]
-      PET_Emax = self.productchannelinfos[Nproductchannel]["PET_Emax"]
-      PET_n = self.productchannelinfos[Nproductchannel]["PET_n"]
-      PET_m = self.productchannelinfos[Nproductchannel]["PET_m"]
-      PETtotal_constant = 1.0e0 / (float(gamma(PET_m+1) * gamma(PET_n+1) / gamma(PET_m+PET_n+2)))
-      PETtotal_constant = PETtotal_constant / ((PET_Emax+Erel-PET_Emin)**(PET_m+PET_n+1))
+      PETfunc = self.productchannelinfos[Nproductchannel]["PET"]
+      PETParameters = self.productchannelinfos[Nproductchannel]["PETParameters"]
+      if (len(PETParameters)==4):
+        PET_Emax = PETParameters[2]
+        PET_Emin = PETParameters[3]
+      else:
+        PET_Emax = PETParameters[0][-1]
+        PET_Emin = PETParameters[0][0]
+      PETtotal_constant = 1.0e0 / quad(PETfunc,PET_Emin,PET_Emax+Erel,args=(Erel,PETParameters))[0]
 
       ys.append(np.zeros(len(x)))
       for i in range(len(x)):
         if ((x[i] > PET_Emin) and (x[i] < PET_Emax+Erel)):
-          ys[-1][i] += ((x[i] - PET_Emin)**PET_n) * ((PET_Emax+Erel - x[i])**PET_m) * PETtotal_constant
+          ys[-1][i] += PETfunc(x[i],Erel,PETParameters) * PETtotal_constant
           y[i] += ys[-1][i] * self.productchannelinfos[Nproductchannel]["branching_ratio"]
   
     if (np.max(y) > 0):
@@ -913,8 +1000,12 @@ class crossedmolecularbeamsexperiment:
 
     PET_Emax = 0.0e0
     for Nproductchannel in range(len(self.productchannelinfos)):
-      PET_Emax = max(PET_Emax,self.productchannelinfos[Nproductchannel]["PET_Emax"])
-      PET_Emax = max(PET_Emax,self.productchannelinfos[Nproductchannel]["PET_Emax"])
+      PETParameters = self.productchannelinfos[Nproductchannel]["PETParameters"]
+      if (len(PETParameters)==4):
+        tmpPET_Emax = PETParameters[2]
+      else:
+        tmpPET_Emax = PETParameters[0][-1]
+      PET_Emax = max(PET_Emax,tmpPET_Emax)
     
     mu = self.productchannelinfos[0]["mA"] * self.productchannelinfos[0]["mB"] / (self.productchannelinfos[0]["mA"]+self.productchannelinfos[0]["mB"])
     Erel = 0.5e0 * mu * (self.vApp**2 + self.vBpp**2)
@@ -922,15 +1013,23 @@ class crossedmolecularbeamsexperiment:
     
     y = np.zeros((len(self.productchannelinfos),len(x)))
     for Nproductchannel in range(len(self.productchannelinfos)):
+      PETfunc = self.productchannelinfos[Nproductchannel]["PET"]
+      PETParameters = self.productchannelinfos[Nproductchannel]["PETParameters"]
+      if (len(PETParameters)==4):
+        PET_Emax = PETParameters[2]
+        PET_Emin = PETParameters[3]
+      else:
+        PET_Emax = PETParameters[0][-1]
+        PET_Emin = PETParameters[0][0]
       for i in range(len(x)):
-        if (x[i] <= self.productchannelinfos[Nproductchannel]["PET_Emin"]):
+        if (x[i] < PET_Emin):
           y[Nproductchannel,i]=0.0e0
-        elif (x[i] >= self.productchannelinfos[Nproductchannel]["PET_Emax"]+Erel):
+        elif (x[i] > PET_Emax+Erel):
           y[Nproductchannel,i]=0.0e0
         else:
-          y[Nproductchannel,i] = ((x[i] - self.productchannelinfos[Nproductchannel]["PET_Emin"])**self.productchannelinfos[Nproductchannel]["PET_n"]) * ((self.productchannelinfos[Nproductchannel]["PET_Emax"]+Erel - x[i])**self.productchannelinfos[Nproductchannel]["PET_m"])
+          y[Nproductchannel,i] = PETfunc(x[i],Erel,PETParameters)
       if (np.max(y[Nproductchannel]) > 0): y[Nproductchannel] = y[Nproductchannel] / np.max(y[Nproductchannel])
-    
+
     f = open(dataCMPEfile,"w")
     f.write(("#{:7s} " + len(self.productchannelinfos)*" {:>5s}" + "\n").format("E(kcal)",*["P("+str(i)+")" for i in range(len(self.productchannelinfos))]) )
     for i in range(len(x)):
@@ -947,9 +1046,10 @@ class crossedmolecularbeamsexperiment:
     y = []
     for Nproductchannel in range(len(self.productchannelinfos)):
       Ptheta = self.productchannelinfos[Nproductchannel]["Ptheta"]
-      y.append(Ptheta[0] + Ptheta[1]*P1 + Ptheta[2]*P2)
+      PthetaParameters = self.productchannelinfos[Nproductchannel]["PthetaParameters"]
+      y.append(Ptheta(P1,PthetaParameters))
     y = np.array(y)
-    
+
     f = open(dataCMTfile,"w")
     f.write(("#{:7s} " + len(self.productchannelinfos)*" {:>7s}" + "\n").format("Theta",*["P("+str(i)+")" for i in range(len(self.productchannelinfos))]) )
     for i in range(len(x)):
