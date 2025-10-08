@@ -1,4 +1,11 @@
 
+For installation of GMTHRASHpy, use pip: `pip install gmthrash`
+
+For details on the physics guiding the algorithms in GMTHRASHpy, see: https://doi.org/10.48550/arXiv.2510.05398
+
+For questions or suggestions for features to add, contact Kazuumi Fujioka: kazuumi@hawaii.edu
+
+
 # Introduction
 
 <img align="right" width="300" height="300" src="device1.png">
