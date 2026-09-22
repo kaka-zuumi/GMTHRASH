@@ -5,6 +5,8 @@ For details on the physics guiding the algorithms in GMTHRASHpy, see: https://do
 
 For questions or suggestions for features to add, contact Kazuumi Fujioka: kazuumi@hawaii.edu
 
+<img align="center" width="800" height="320" src="gmthrash.logo1.png">
+
 
 # Introduction
 
